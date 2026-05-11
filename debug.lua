@@ -1,5 +1,5 @@
--- Vehicle Loader Debug System v5.0
--- Modern In-Game Editor mit Snap, Ghost-Preview, Test-Vehicle, Undo/Redo & mehr
+-- Vehicle Loader Debug System v5.1
+-- Modern In-Game Editor mit Snap, Test-Vehicle, Undo/Redo, Rate-Limited Adjustment
 
 local debugMode = false
 local selectedTrailer = nil
@@ -8,14 +8,17 @@ local adjustmentMode = 'position'
 local adjustmentAxis = 'x'
 local adjustmentStep = 0.1
 
+-- Rate Limiting für E/Q Adjustments (verhindert zu schnelle Sprünge)
+local lastAdjustTime = 0
+local ADJUST_COOLDOWN = 100  -- ms zwischen Adjustments bei Hold
+
 -- Backup System (Undo/Redo)
 local undoStack = {}
 local redoStack = {}
 local MAX_UNDO = 20
 
--- Test-Vehicle & Ghost
+-- Test-Vehicle
 local testVehicle = nil
-local ghostVehicle = nil
 
 -- ============================================================
 -- HELPERS
@@ -129,19 +132,34 @@ local function AdjustSlot(trailerConfig, axisDelta)
 
     if adjustmentMode == 'position' then
         local c = slot.offset
+        -- Werte auf 2 Dezimalstellen runden (verhindert Float-Drift)
         slot.offset = vector3(
-            c.x + (adjustmentAxis == 'x' and axisDelta or 0),
-            c.y + (adjustmentAxis == 'y' and axisDelta or 0),
-            c.z + (adjustmentAxis == 'z' and axisDelta or 0)
+            math.floor((c.x + (adjustmentAxis == 'x' and axisDelta or 0)) * 100 + 0.5) / 100,
+            math.floor((c.y + (adjustmentAxis == 'y' and axisDelta or 0)) * 100 + 0.5) / 100,
+            math.floor((c.z + (adjustmentAxis == 'z' and axisDelta or 0)) * 100 + 0.5) / 100
         )
     else
         local c = slot.rotation
         slot.rotation = vector3(
-            c.x + (adjustmentAxis == 'x' and axisDelta or 0),
-            c.y + (adjustmentAxis == 'y' and axisDelta or 0),
-            c.z + (adjustmentAxis == 'z' and axisDelta or 0)
+            math.floor((c.x + (adjustmentAxis == 'x' and axisDelta or 0)) * 100 + 0.5) / 100,
+            math.floor((c.y + (adjustmentAxis == 'y' and axisDelta or 0)) * 100 + 0.5) / 100,
+            math.floor((c.z + (adjustmentAxis == 'z' and axisDelta or 0)) * 100 + 0.5) / 100
         )
     end
+
+    -- Sofortiges Zone-Update für Live-Preview
+    if selectedTrailer then
+        exports.vehicle_loader:ForceRecreateZones(selectedTrailer)
+    end
+end
+
+-- Rate-Limited Adjust (verhindert zu schnelle Sprünge bei Hold)
+local function TryAdjust(trailerConfig, axisDelta)
+    local now = GetGameTimer()
+    if (now - lastAdjustTime) < ADJUST_COOLDOWN then return end
+
+    lastAdjustTime = now
+    AdjustSlot(trailerConfig, axisDelta)
 end
 
 -- ============================================================
@@ -200,6 +218,9 @@ local function SnapSlotToCurrentVehicle()
 
     slot.offset = newOffset
     slot.rotation = vector3(0.0, 0.0, math.floor(rotDiff * 100) / 100)
+
+    -- Sofortiges Zone-Update
+    exports.vehicle_loader:ForceRecreateZones(selectedTrailer)
 
     Bridge.Notify('Debug', ('Slot %d gesnapped!'):format(slot.id), 'success')
 end
@@ -640,17 +661,40 @@ local function OpenMainMenu()
         icon = 'fa-solid fa-keyboard',
         onSelect = function()
             local slot = trailerConfig.slots[selectedSlot]
+            -- step = 0.05 für feine Anpassung, precision = 2 Dezimalstellen
             local input = lib.inputDialog(('Slot %d bearbeiten'):format(slot.id), {
-                { type = 'number', label = 'Offset X', default = slot.offset.x, step = 0.01 },
-                { type = 'number', label = 'Offset Y', default = slot.offset.y, step = 0.01 },
-                { type = 'number', label = 'Offset Z', default = slot.offset.z, step = 0.01 },
-                { type = 'number', label = 'Rotation Z (Grad)', default = slot.rotation.z, step = 1 },
+                {
+                    type = 'number', label = 'Offset X',
+                    default = slot.offset.x, step = 0.05, precision = 2,
+                },
+                {
+                    type = 'number', label = 'Offset Y',
+                    default = slot.offset.y, step = 0.05, precision = 2,
+                },
+                {
+                    type = 'number', label = 'Offset Z',
+                    default = slot.offset.z, step = 0.05, precision = 2,
+                },
+                {
+                    type = 'number', label = 'Rotation Z (Grad)',
+                    default = slot.rotation.z, step = 1, precision = 0,
+                },
             })
 
             if input then
                 SaveUndoState(trailerConfig)
-                slot.offset = vector3(input[1] or 0, input[2] or 0, input[3] or 0)
-                slot.rotation = vector3(0, 0, input[4] or 0)
+                slot.offset = vector3(
+                    tonumber(input[1]) or 0,
+                    tonumber(input[2]) or 0,
+                    tonumber(input[3]) or 0
+                )
+                slot.rotation = vector3(0, 0, tonumber(input[4]) or 0)
+
+                -- Sofortiges Zone-Update für Live-Preview
+                if selectedTrailer then
+                    exports.vehicle_loader:ForceRecreateZones(selectedTrailer)
+                end
+
                 Bridge.Notify('Debug', 'Werte aktualisiert!', 'success')
             end
 
@@ -729,9 +773,22 @@ local function HandleDebugInput(trailerConfig)
     elseif IsControlJustReleased(0, 71) then adjustmentAxis = 'z'
     end
 
-    -- E/Q - Adjust
-    if IsControlPressed(0, 38) then AdjustSlot(trailerConfig, adjustmentStep) end
-    if IsControlPressed(0, 44) then AdjustSlot(trailerConfig, -adjustmentStep) end
+    -- E/Q - Adjust (Single Press = sofortiger Schritt, Hold = rate-limited)
+    if IsControlJustPressed(0, 38) then
+        -- Sofort beim Tastendruck
+        lastAdjustTime = GetGameTimer()
+        AdjustSlot(trailerConfig, adjustmentStep)
+    elseif IsControlPressed(0, 38) then
+        -- Beim Halten rate-limited
+        TryAdjust(trailerConfig, adjustmentStep)
+    end
+
+    if IsControlJustPressed(0, 44) then
+        lastAdjustTime = GetGameTimer()
+        AdjustSlot(trailerConfig, -adjustmentStep)
+    elseif IsControlPressed(0, 44) then
+        TryAdjust(trailerConfig, -adjustmentStep)
+    end
 
     -- 1/2/3 - Step
     if IsControlJustReleased(0, 157) then adjustmentStep = 0.05

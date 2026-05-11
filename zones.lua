@@ -104,10 +104,13 @@ function RemoveAllZones()
 end
 
 -- ============================================================
--- ZONE AUTO-UPDATE (Anhänger-Bewegung)
+-- ZONE AUTO-UPDATE (Anhänger-Bewegung + Live Debug Update)
 -- ============================================================
+-- Im Debug-Mode 50ms (smooth), sonst 250ms (Performance)
 CreateThread(function()
     while true do
+        local updateInterval = DebugZonesActive and 50 or 250
+
         for trailerNet, zones in pairs(ActiveZones) do
             local trailer = NetworkGetEntityFromNetworkId(trailerNet)
 
@@ -133,7 +136,7 @@ CreateThread(function()
             end
         end
 
-        Wait(250)
+        Wait(updateInterval)
     end
 end)
 
@@ -217,6 +220,16 @@ function ToggleDebugZones(state)
         end
     end
 end
+
+-- Force-Recreate Zone für sofortiges Update (z.B. nach Slot-Änderung im Debug)
+function ForceRecreateZones(trailer)
+    if not trailer or trailer == 0 then return end
+    CreateZonesForTrailer(trailer, DebugZonesActive)
+end
+
+exports('ForceRecreateZones', function(trailer)
+    ForceRecreateZones(trailer)
+end)
 
 -- ============================================================
 -- ZONE EVENT HANDLERS
