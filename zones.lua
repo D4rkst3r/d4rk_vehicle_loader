@@ -29,11 +29,14 @@ end
 local function CreateSlotZone(trailer, slot, debug)
     local trailerNet = NetworkGetNetworkIdFromEntity(trailer)
 
+    -- ⭐ Color-Coded Zones im Debug Mode
+    -- Grün = frei, Rot = belegt (wird beim Update gesetzt)
     return lib.zones.box({
         coords = CalculateSlotWorldPos(trailer, slot),
         size = vec3(2.5, 5.0, 2.0),
         rotation = GetEntityHeading(trailer) + (slot.rotation.z or 0),
         debug = debug or false,
+        debugColour = {0, 255, 0, 100}, -- Grün als Default
 
         onEnter = function(self)
             -- lib.cache nutzen für PlayerPed
