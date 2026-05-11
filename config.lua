@@ -18,8 +18,8 @@ Config = {
         LoadingTime = 5000,              -- ms zum Aufladen
         UnloadingTime = 3000,            -- ms zum Entladen
         UnloadDistance = 8.0,            -- Meter hinter Anhänger
-        ConfirmUnload = true,           -- Bestätigung vor Entladen?
-        RefundItemsOnUnload = true,     -- Items beim Entladen zurückgeben?
+        ConfirmUnload = false,           -- Bestätigung vor Entladen?
+        RefundItemsOnUnload = false,     -- Items beim Entladen zurückgeben?
 
         -- ============================================================
         -- VISUALS & AUDIO
@@ -31,7 +31,7 @@ Config = {
         -- ============================================================
         -- ANTI-THEFT / OWNER-LOCK
         -- ============================================================
-        OwnerOnlyUnload = true,         -- Nur Owner kann entladen?
+        OwnerOnlyUnload = false,         -- Nur Owner kann entladen?
         AllowJobUnload = true,           -- Job-Kollegen dürfen auch entladen
         AllowAdminUnload = true,         -- Admins dürfen immer entladen
 
