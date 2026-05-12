@@ -124,6 +124,41 @@ local info = lib.callback.await('vehicle_loader:api:getTrailerInfo', false, trai
 
 ---
 
+## 🎨 Effects Exports (Client - v4.0+)
+
+```lua
+-- Sounds abspielen
+exports.vehicle_loader:PlaySound('truck_brake', coords)
+-- Verfügbare Sounds: 'truck_brake', 'load_start', 'load_complete',
+--                    'unload_drop', 'mechanical', 'error'
+
+-- Rampe öffnen/schließen
+exports.vehicle_loader:OpenTrailerRamp(trailer, doorIndex)
+exports.vehicle_loader:CloseTrailerRamp(trailer, doorIndex)
+
+-- Visual Slot Markers togglen
+exports.vehicle_loader:ToggleMarkers(state)  -- true/false/nil(toggle)
+
+-- Debug-Zonen togglen
+exports.vehicle_loader:ToggleZoneDebug(state)
+
+-- Zone neu erstellen (nach manueller Slot-Änderung)
+exports.vehicle_loader:ForceRecreateZones(trailer)
+```
+
+## 🛡️ Bridge Exports (Server)
+
+```lua
+-- Aktives Framework
+local fw = exports.vehicle_loader:GetFramework()
+-- Returns: 'qbox', 'esx', 'qbcore', 'standalone'
+
+-- Admin Check (ACE + txAdmin + Framework)
+local isAdmin = Bridge.IsAdmin(source)
+```
+
+---
+
 ## 📥 Client Exports
 
 ```lua

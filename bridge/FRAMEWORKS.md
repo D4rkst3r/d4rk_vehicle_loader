@@ -300,5 +300,35 @@ Config.Jobs = { ['mechanic'] = true }
 
 ---
 
-**Aktuelle Bridge-Version**: 3.0.0  
+## 🔐 Admin Detection (txAdmin + ACE)
+
+`Bridge.IsAdmin(source)` prüft automatisch:
+
+```
+1. ACE 'group.admin'              ← txAdmin, manuelle Admins
+2. ACE 'group.superadmin'         ← Server-Owner
+3. ACE 'vehicle_loader.admin'     ← Custom Permission nur für diese Resource
+4. txAdmin (monitor Resource)     ← Wenn txAdmin läuft
+5. Framework-spezifisch:
+   - ESX:    xPlayer.getGroup() == 'admin'
+   - QBox:   PlayerData.metadata.admin
+   - QBCore: HasPermission(source, 'admin')
+```
+
+### Test im Spiel
+```
+/loaderadmincheck
+```
+
+Zeigt alle Checks und ob du als Admin erkannt wirst.
+
+### Custom Permission (nur Loader-Admin)
+```cfg
+# server.cfg - Spieler ist KEIN Server-Admin, kann aber Loader-Befehle nutzen
+add_ace identifier.steam:STEAMID vehicle_loader.admin allow
+```
+
+---
+
+**Aktuelle Bridge-Version**: 4.0.0  
 **Getestet auf**: ESX Legacy 1.10+, QBCore 1.2+, QBox latest
