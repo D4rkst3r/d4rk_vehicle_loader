@@ -72,10 +72,48 @@ local function GetSlotConfig(trailerEntity, slotId)
     return nil
 end
 
--- Attach Vehicle Helper
--- WICHTIG: collision = false damit Auto NICHT mit Anhänger kollidiert
--- (verhindert Physik-Glitches & Trampolin-Effekt)
+-- ============================================================
+-- NETWORK OWNERSHIP HELPER
+-- ============================================================
+-- Request Network-Ownership einer Entity (mit Timeout)
+-- Returns true wenn Ownership erhalten, false bei Timeout
+---@param entity number
+---@param timeout? number ms (default 1500)
+---@return boolean
+local function RequestNetworkOwnership(entity, timeout)
+    if not entity or entity == 0 or not DoesEntityExist(entity) then
+        return false
+    end
+
+    -- Wir sind schon Owner?
+    if NetworkHasControlOfEntity(entity) then
+        return true
+    end
+
+    timeout = timeout or 1500
+    local deadline = GetGameTimer() + timeout
+
+    while not NetworkHasControlOfEntity(entity) and GetGameTimer() < deadline do
+        NetworkRequestControlOfEntity(entity)
+        Wait(0)
+    end
+
+    return NetworkHasControlOfEntity(entity)
+end
+
+-- Attach Vehicle Helper mit korrektem NetworkOwner-Handling
 local function AttachVehicleToTrailer(vehicle, trailer, slotConfig)
+    -- ⭐ Network Ownership SICHERSTELLEN bevor wir die Entity manipulieren
+    -- Sonst werden SetEntityCoords/AttachEntityToEntity vom Server ignoriert
+    local hasVehicleControl = RequestNetworkOwnership(vehicle, 1500)
+    local hasTrailerControl = RequestNetworkOwnership(trailer, 1500)
+
+    if not hasVehicleControl then
+        -- Wir konnten Ownership nicht bekommen → anderer Client macht es
+        -- (Der NetworkOwner des Vehicles wird Attach durchführen)
+        return false
+    end
+
     local trailerCoords = GetEntityCoords(trailer)
     local trailerHeading = GetEntityHeading(trailer)
 
@@ -118,9 +156,18 @@ local function AttachVehicleToTrailer(vehicle, trailer, slotConfig)
         true                      -- fixedRot (Rotation fest)
     )
 
+    -- ⭐ Network ID Migration sperren (verhindert dass Ownership wandert während attached)
+    local vehicleNetId = NetworkGetNetworkIdFromEntity(vehicle)
+    if vehicleNetId and vehicleNetId ~= 0 then
+        SetNetworkIdCanMigrate(vehicleNetId, false)
+    end
+
     -- Entity Properties optimieren für stabile Attach
     SetEntityCollision(vehicle, true, true)  -- Welt-Collision aktiv lassen
     FreezeEntityPosition(vehicle, false)     -- Nicht freezen (würde sich nicht mehr mitbewegen)
+    SetEntityAsMissionEntity(vehicle, true, true)  -- Verhindert auto-despawn
+
+    return true
 end
 
 -- Load Vehicle (in specific slot)
@@ -368,6 +415,21 @@ AddEventHandler('vehicle_loader:state:vehicleDetached', function(vehicle, vehicl
     local trailer = NetworkGetEntityFromNetworkId(trailerNet)
 
     if vehicle and vehicle ~= 0 then
+        -- ⭐ Network Ownership für Detach
+        local hasControl = RequestNetworkOwnership(vehicle, 1500)
+        if not hasControl then
+            -- Wir können nicht detachen, anderer Client macht es
+            LoadedVehicles[vehicleNet] = nil
+            TriggerEvent('vehicle_loader:client:onVehicleUnloaded', vehicleNet, trailerNet, slotId)
+            return
+        end
+
+        -- ⭐ Network ID Migration wieder erlauben (war beim Attach gesperrt)
+        local netId = NetworkGetNetworkIdFromEntity(vehicle)
+        if netId and netId ~= 0 then
+            SetNetworkIdCanMigrate(netId, true)
+        end
+
         -- Detach
         if IsEntityAttached(vehicle) then
             DetachEntity(vehicle, true, true)
