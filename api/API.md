@@ -159,6 +159,58 @@ local isAdmin = Bridge.IsAdmin(source)
 
 ---
 
+## 🎮 Multiplayer Internals (v4.0+)
+
+Das System nutzt diese FiveM Natives für stabilen Multiplayer:
+
+### Network Ownership
+```lua
+-- Vor jeder Entity-Manipulation:
+NetworkRequestControlOfEntity(entity)
+-- Loop bis NetworkHasControlOfEntity(entity) == true
+```
+
+### Migration Lock (während Transport)
+```lua
+SetNetworkIdCanMigrate(netId, false)  -- Beim Attach
+SetNetworkIdCanMigrate(netId, true)   -- Beim Detach
+```
+
+### High-Precision Blending
+```lua
+NetworkUseHighPrecisionBlending(netId, true)   -- Beim Attach
+NetworkUseHighPrecisionBlending(netId, false)  -- Beim Detach
+-- Native: 0x2B1813ABA29016C5
+-- → Hochfrequente Position-Sync für andere Clients
+-- → Verhindert Wackeln/Jitter bei bewegten Vehicles
+```
+
+### Loader-Source Statebag
+```lua
+-- Server schreibt source in Statebag
+Entity(vehicle).state:set('vehicleLoaderAttached', {
+    trailerNet = ...,
+    slotId = ...,
+    loaderSource = source,  -- Wer hat geladen
+}, true)
+
+-- Client filtert:
+local isLoader = (loaderSource == GetPlayerServerId(PlayerId()))
+if isLoader then
+    -- Nur Loader führt physisches Attach aus
+end
+```
+
+### Slot Locking (Race-Prevention)
+```lua
+-- Server-side Atomic Lock vor Loading
+TryLockSlot(trailerNet, slotId, source)
+-- Auto-Release nach 15s Timeout
+-- Manual Release bei: Erfolg, Cancel, Player Disconnect
+```
+
+---
+
 ## 📥 Client Exports
 
 ```lua

@@ -11,6 +11,8 @@
 - 🌐 **Multi-Framework** - ESX / QBox / QBCore / Standalone (Auto-Detection)
 - 📡 **Statebag-based Sync** - Native FiveM State Replication
 - 🔒 **Race-Condition Safe** - Server-Side Slot Locking
+- 🎮 **Smooth Multiplayer** - NetworkOwner-Handling + High-Precision Blending
+- 🛡️ **Loader-Filter** - Nur ladender Client führt Attach aus (Anti-Race)
 - 🎨 **Modern NUI Debug** - Glassmorphism UI mit Live-Updates (v6.0)
 - 🎯 **Snap-to-Vehicle** - Position via Test-Auto setzen
 - 🔊 **Sound Effects** - Native FiveM Sounds (Truck Brakes, Mechanical)
@@ -524,6 +526,69 @@ ensure vehicle_loader
 
 ---
 
+## 🎮 Multiplayer-Handling
+
+Das System nutzt mehrere Techniken für **stabilen Multiplayer-Sync**:
+
+### 1. **NetworkOwner Requesting**
+Vor jedem Attach/Detach wird die Network-Ownership der Entity requestiert:
+```lua
+NetworkRequestControlOfEntity(vehicle)
+-- Server gibt Ownership → Manipulation funktioniert
+```
+
+### 2. **Migration Lock während Transport**
+Während Vehicle attached ist, kann Ownership nicht zu anderen Clients wandern:
+```lua
+SetNetworkIdCanMigrate(vehicleNetId, false)
+```
+
+### 3. **High-Precision Blending**
+Position wird mit hochfrequentem Sync übertragen → kein Wackeln/Jitter für andere Spieler:
+```lua
+NetworkUseHighPrecisionBlending(vehicleNetId, true)
+```
+
+### 4. **Loader-Source Filter**
+Server speichert `loaderSource` im Statebag → nur dieser Client führt physisches Attach aus:
+```lua
+-- Statebag enthält:
+{ trailerNet, slotId, loaderSource = sourceId }
+
+-- Client filtert:
+if loaderSource == GetPlayerServerId(PlayerId()) then
+    AttachVehicleToTrailer(...)
+end
+```
+
+### 5. **Race-Condition Prevention**
+Server-Side **Slot Locking** verhindert dass 2 Spieler gleichzeitig den gleichen Slot beanspruchen:
+```lua
+TryLockSlot(trailerNet, slotId, source)
+-- Wenn lock erfolgreich → 15s reserviert
+-- Auto-Release bei Cancel oder Timeout
+```
+
+### 6. **Mission Entity**
+Vehicle bleibt geladen auch wenn Spieler weit weg sind:
+```lua
+SetEntityAsMissionEntity(vehicle, true, true)
+-- → Verhindert auto-despawn
+```
+
+### 📊 Wie das in Edge-Cases hilft:
+
+| Szenario | Ohne Fix | Mit Fix |
+|----------|----------|---------|
+| 2 Spieler laden gleichzeitig | ❌ Race | ✅ Slot-Lock |
+| Anderer Spieler näher am Vehicle | ❌ Attach silent fail | ✅ Ownership Request |
+| Vehicle wackelt für andere Clients | ❌ Default Sync | ✅ High-Precision |
+| Spieler joint mid-transport | ❌ Inkonsistenz | ✅ Statebag sync |
+| Loader fährt weit weg | ❌ Auto-Despawn | ✅ Mission Entity |
+| Vehicle wird zerstört | ❌ Memory Leak | ✅ entityRemoved cleanup |
+
+---
+
 ## 🐛 Troubleshooting
 
 ### "Framework: standalone" obwohl Framework läuft
@@ -547,8 +612,17 @@ ensure vehicle_loader
 ### Auto wackelt auf dem Anhänger
 → Sollte in v3.4+ gefixt sein (SetEntityNoCollisionEntity)
 
+### Auto wackelt für ANDERE Spieler
+→ Sollte in v4.0+ gefixt sein (NetworkUseHighPrecisionBlending)
+
+### Auto bleibt auf der Straße statt am Anhänger
+→ Sollte in v4.0+ gefixt sein (NetworkOwner-Request + Loader-Filter)
+
 ### Race-Condition / Slot doppelt belegt
 → Sollte in v3.2+ gefixt sein (Slot Locking)
+
+### Test-Vehicle spawnt im Boden
+→ Sollte in v4.0+ gefixt sein (GetGroundZFor_3dCoord)
 
 **Mehr Details:** [bridge/FRAMEWORKS.md](bridge/FRAMEWORKS.md) und [storage/STORAGE.md](storage/STORAGE.md)
 
@@ -568,6 +642,10 @@ ensure vehicle_loader
 | Undo/Redo | ✅ |
 | Test-Vehicle Spawner | ✅ |
 | Network Sync (Statebags) | ✅ |
+| NetworkOwner Handling | ✅ |
+| High-Precision Blending | ✅ |
+| Migration Lock | ✅ |
+| Loader-Source Filter | ✅ |
 | Race-Condition Safe | ✅ |
 | Security Layer | ✅ |
 | Rate Limiting | ✅ |
