@@ -130,7 +130,7 @@ Config = {
             slots = {
                 {
                     id = 1,
-                    offset = vector3(0.0, -2.00, 0.80),
+                    offset = vector3(0.0, -2.00, 0.95),
                     rotation = vector3(0.0, 0.0, 0.0),
                 }
             }
@@ -167,7 +167,7 @@ Config = {
 
         -- Beispiel großer Anhänger mit 3 Slots
         {
-            model = 'flatbed_large',
+            model = 'armytrailer',
             label = 'Large Flatbed Triple',
             maxVehicles = 3,
             ramp = {
@@ -194,6 +194,40 @@ Config = {
                 {
                     id = 3,
                     offset = vector3(2.0, -7.0, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                }
+            }
+        },
+
+         -- Beispiel großer Anhänger mit 3 Slots (zweiter Eintrag zum Testen)
+        {
+            model = 'trflat',
+            label = 'Large Flatbed Triple',
+            maxVehicles = 3,
+            ramp = {
+                enabled = true,
+                doorIndex = 5,
+                openTime = 500,
+            },
+            restrictions = {
+                allowedClasses = nil,
+                blacklistedClasses = nil,
+                maxLength = nil,
+            },
+            slots = {
+                {
+                    id = 1,
+                    offset = vector3(0.0, 4.0, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                },
+                {
+                    id = 2,
+                    offset = vector3(0.0, -1.0, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                },
+                {
+                    id = 3,
+                    offset = vector3(0.0, -6.0, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 }
             }
