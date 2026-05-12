@@ -100,6 +100,8 @@ end
 -- HUMAN-READABLE CLASS NAMES
 -- ============================================================
 
+-- Vehicle Classes (FiveM Native: GetVehicleClass, Hash: 0x29439776AAA00A62)
+-- Hinweis: GetVehicleClass ist nur CLIENT-Side verfügbar
 local ClassNames = {
     [0] = 'Compacts',
     [1] = 'Sedans',
@@ -123,6 +125,7 @@ local ClassNames = {
     [19] = 'Militär',
     [20] = 'Kommerziell',
     [21] = 'Züge',
+    [22] = 'Open Wheel',  -- F1 / Formula Cars
 }
 
 ---@param classId number

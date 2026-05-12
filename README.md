@@ -179,6 +179,23 @@ Config.Trailers = {
 | `suv` | 2.5 × 5.0 × 2.0 | 🚙 SUV / Pickup |
 | `truck` | 2.8 × 6.5 × 3.0 | 🚛 LKW |
 
+### Vehicle Classes (GetVehicleClass)
+
+| ID | Klasse | ID | Klasse |
+|---:|--------|---:|--------|
+| 0 | Compacts | 12 | Vans |
+| 1 | Sedans | 13 | Cycles |
+| 2 | SUVs | 14 | Boats |
+| 3 | Coupes | 15 | Helicopters |
+| 4 | Muscle | 16 | Planes |
+| 5 | Sports Classics | 17 | Service |
+| 6 | Sports | 18 | Emergency |
+| 7 | Super | 19 | Military |
+| 8 | Motorcycles | 20 | Commercial |
+| 9 | Off-road | 21 | Trains |
+| 10 | Industrial | 22 | Open Wheel |
+| 11 | Utility | | |
+
 ---
 
 ## ✨ Features
