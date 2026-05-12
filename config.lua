@@ -130,7 +130,7 @@ Config = {
             slots = {
                 {
                     id = 1,
-                    offset = vector3(0.0, -3.5, 1.0),
+                    offset = vector3(0.0, -2.00, 0.80),
                     rotation = vector3(0.0, 0.0, 0.0),
                 }
             }
