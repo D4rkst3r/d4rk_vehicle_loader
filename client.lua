@@ -380,10 +380,13 @@ local function UnloadVehicle(trailerEntity)
     TriggerServerEvent('vehicle_loader:unload', trailerNet)
 end
 
--- ⭐ Statebag Listener: Vehicle attached (ersetzt syncLoad)
+-- ⭐ Statebag Listener: Vehicle attached
+-- WICHTIG: Nur der LOADER-Client führt Attach aus (NetworkOwner-Race vermeiden)
+-- Andere Clients updaten nur ihren lokalen Cache + Event
 AddEventHandler('vehicle_loader:state:vehicleAttached', function(vehicle, vehicleNet, attachData)
     local trailerNet = attachData.trailerNet
     local slotId = attachData.slotId
+    local loaderSource = attachData.loaderSource or 0
 
     local trailer = NetworkGetEntityFromNetworkId(trailerNet)
     if not trailer or trailer == 0 then return end
@@ -391,17 +394,31 @@ AddEventHandler('vehicle_loader:state:vehicleAttached', function(vehicle, vehicl
     local slotConfig = GetSlotConfig(trailer, slotId)
     if not slotConfig then return end
 
-    -- Nur attachen wenn nicht bereits attached
-    if not IsEntityAttached(vehicle) then
-        AttachVehicleToTrailer(vehicle, trailer, slotConfig)
-    end
-
+    -- Cache immer aktualisieren (für alle Clients)
     LoadedVehicles[vehicleNet] = {
         trailerNet = trailerNet,
         slotId = slotId,
     }
 
-    -- HOOK: Notify other resources
+    -- ⭐ Nur der ladende Client führt das Attach physisch aus
+    -- → Verhindert Race-Conditions wenn mehrere Clients gleichzeitig versuchen
+    local isLoader = (loaderSource == GetPlayerServerId(PlayerId()))
+
+    if isLoader and not IsEntityAttached(vehicle) then
+        AttachVehicleToTrailer(vehicle, trailer, slotConfig)
+    elseif not IsEntityAttached(vehicle) then
+        -- Fallback: nach 2s checken ob Loader es geschafft hat
+        -- Wenn nicht, versucht jeder Client der NetworkOwner ist
+        SetTimeout(2000, function()
+            if not IsEntityAttached(vehicle) and DoesEntityExist(vehicle) then
+                if NetworkHasControlOfEntity(vehicle) then
+                    AttachVehicleToTrailer(vehicle, trailer, slotConfig)
+                end
+            end
+        end)
+    end
+
+    -- HOOK: Notify other resources (allen)
     TriggerEvent('vehicle_loader:client:onVehicleLoaded', vehicleNet, trailerNet, slotId)
 end)
 

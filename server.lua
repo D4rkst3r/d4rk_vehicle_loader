@@ -142,8 +142,9 @@ function ForceLoadVehicleInternal(vehicleNet, trailerNet, slotId, source)
     }
 
     -- ⭐ Statebag-based Sync (automatic via FiveM)
+    -- source mitgeben damit nur der Loader Client das Attach ausführt
     StatebagAPI.OccupySlot(trailerEntity, slotId, vehicleNet)
-    StatebagAPI.AttachVehicleState(vehicleEntity, trailerNet, slotId)
+    StatebagAPI.AttachVehicleState(vehicleEntity, trailerNet, slotId, source)
 
     -- Slot-Lock freigeben (Loading abgeschlossen)
     ReleaseSlotLock(trailerNet, slotId)

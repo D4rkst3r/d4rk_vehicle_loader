@@ -59,12 +59,14 @@ if IsDuplicityVersion() then
     end
 
     -- Vehicle als geladen markieren
-    function StatebagAPI.AttachVehicleState(vehicleEntity, trailerNet, slotId)
+    -- ⭐ source als loaderSource speichern → nur dieser Client führt Attach aus
+    function StatebagAPI.AttachVehicleState(vehicleEntity, trailerNet, slotId, source)
         if not vehicleEntity or vehicleEntity == 0 then return end
 
         Entity(vehicleEntity).state:set('vehicleLoaderAttached', {
             trailerNet = trailerNet,
             slotId = slotId,
+            loaderSource = source or 0,  -- Wer hat geladen (für Client-Filter)
         }, true)
     end
 
