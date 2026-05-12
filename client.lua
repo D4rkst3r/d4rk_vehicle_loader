@@ -156,10 +156,16 @@ local function AttachVehicleToTrailer(vehicle, trailer, slotConfig)
         true                      -- fixedRot (Rotation fest)
     )
 
-    -- ⭐ Network ID Migration sperren (verhindert dass Ownership wandert während attached)
+    -- ⭐ Network-Optimierungen für stabile Multiplayer-Sync
     local vehicleNetId = NetworkGetNetworkIdFromEntity(vehicle)
     if vehicleNetId and vehicleNetId ~= 0 then
+        -- Migration sperren (verhindert dass Ownership während transport wandert)
         SetNetworkIdCanMigrate(vehicleNetId, false)
+
+        -- ⭐ High-Precision Blending aktivieren!
+        -- → Hochfrequente Position-Sync für andere Clients
+        -- → Verhindert Jitter/Wackeln auf bewegten Anhängern
+        NetworkUseHighPrecisionBlending(vehicleNetId, true)
     end
 
     -- Entity Properties optimieren für stabile Attach
@@ -441,10 +447,11 @@ AddEventHandler('vehicle_loader:state:vehicleDetached', function(vehicle, vehicl
             return
         end
 
-        -- ⭐ Network ID Migration wieder erlauben (war beim Attach gesperrt)
+        -- ⭐ Network-Settings auf Default zurücksetzen
         local netId = NetworkGetNetworkIdFromEntity(vehicle)
         if netId and netId ~= 0 then
             SetNetworkIdCanMigrate(netId, true)
+            NetworkUseHighPrecisionBlending(netId, false)  -- Normal Sync wieder
         end
 
         -- Detach
