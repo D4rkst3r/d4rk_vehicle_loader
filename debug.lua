@@ -452,6 +452,7 @@ local function ExportConfig()
 end
 
 local function SpawnTestVehicle(modelName)
+    -- Altes Test-Vehicle löschen
     if testVehicle and DoesEntityExist(testVehicle) then
         SetEntityAsMissionEntity(testVehicle, true, true)
         DeleteVehicle(testVehicle)
@@ -459,15 +460,55 @@ local function SpawnTestVehicle(modelName)
     end
 
     local model = GetHashKey(modelName)
-    lib.requestModel(model, 5000)
 
-    local pedCoords = GetEntityCoords(cache.ped)
+    -- Model laden mit Fehlerbehandlung
+    if not IsModelInCdimage(model) or not IsModelAVehicle(model) then
+        Bridge.Notify('Debug', ('Modell "%s" nicht verfügbar!'):format(modelName), 'error')
+        return
+    end
+
+    if not lib.requestModel(model, 5000) then
+        Bridge.Notify('Debug', 'Modell konnte nicht geladen werden!', 'error')
+        return
+    end
+
+    -- ⭐ Position via GetOffsetFromEntityInWorldCoords (5m vor dem Spieler)
+    -- yOffset = forward (+Y im lokalen Ped-Koordsystem)
+    local spawnCoords = GetOffsetFromEntityInWorldCoords(cache.ped, 0.0, 5.0, 0.5)
     local heading = GetEntityHeading(cache.ped)
-    local spawnX = pedCoords.x + math.cos(math.rad(heading + 90)) * 5
-    local spawnY = pedCoords.y + math.sin(math.rad(heading + 90)) * 5
 
-    testVehicle = CreateVehicle(model, spawnX, spawnY, pedCoords.z, heading, true, false)
+    -- ⭐ Echten Boden finden (verhindert "im Boden spawnen")
+    local found, groundZ = GetGroundZFor_3dCoord(
+        spawnCoords.x,
+        spawnCoords.y,
+        spawnCoords.z + 10.0,  -- Von oben suchen
+        false
+    )
+
+    -- Falls Boden gefunden: +1.0m drüber spawnen, sonst Spieler-Z
+    local spawnZ = found and (groundZ + 1.0) or spawnCoords.z
+
+    -- Vehicle spawnen
+    testVehicle = CreateVehicle(model, spawnCoords.x, spawnCoords.y, spawnZ, heading, true, false)
+
+    -- Warten bis Entity existiert (max 1s)
+    local timeout = GetGameTimer() + 1000
+    while not DoesEntityExist(testVehicle) and GetGameTimer() < timeout do
+        Wait(10)
+    end
+
+    if not DoesEntityExist(testVehicle) then
+        Bridge.Notify('Debug', 'Spawn fehlgeschlagen!', 'error')
+        SetModelAsNoLongerNeeded(model)
+        return
+    end
+
+    -- Auf Boden setzen + Physik aktivieren
+    Wait(50) -- Kurz warten bis Vehicle physikalisch da ist
     SetVehicleOnGroundProperly(testVehicle)
+    SetVehicleEngineOn(testVehicle, false, true, true)
+    SetEntityAsMissionEntity(testVehicle, true, true)
+
     SetModelAsNoLongerNeeded(model)
 
     Bridge.Notify('Debug', ('Spawned: %s'):format(modelName), 'success')
