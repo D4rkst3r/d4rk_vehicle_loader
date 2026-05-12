@@ -1,4 +1,4 @@
-/* Vehicle Loader Debug UI - Modern Glassmorphism Design */
+/* Vehicle Loader Debug UI - Modern Design (CEF Blackscreen Fix) */
 
 * {
     margin: 0;
@@ -8,8 +8,15 @@
     user-select: none;
 }
 
+/* CRITICAL: html UND body explicit transparent (CEF Blackscreen Fix) */
+html {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
 body {
-    background: transparent;
+    background: transparent !important;
+    background-color: transparent !important;
     overflow: hidden;
     color: #fff;
 }
@@ -25,14 +32,12 @@ body {
     transform: translateY(-50%);
     width: 380px;
     max-height: 90vh;
-    background: rgba(15, 15, 25, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Solid semi-transparent RGBA statt backdrop-filter (CEF Fix) */
+    background: rgba(15, 15, 25, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    box-shadow:
-        0 20px 50px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    border-radius: 12px;
+    /* Reduzierter box-shadow um CEF compositing layer zu vermeiden */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     overflow: hidden;
