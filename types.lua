@@ -7,6 +7,8 @@
 ---@field id number
 ---@field offset vector3
 ---@field rotation vector3
+---@field type? 'bike'|'car'|'suv'|'truck' Preset für Slot-Größe
+---@field size? vector3 Custom Größe (überschreibt type)
 
 ---@class RampConfig
 ---@field enabled boolean

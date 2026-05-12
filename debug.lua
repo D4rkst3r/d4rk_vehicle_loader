@@ -113,6 +113,7 @@ local function SendNUIUpdate()
         slotId = slot.id,
         values = { x = slot.offset.x, y = slot.offset.y, z = slot.offset.z },
         rotation = { x = slot.rotation.x, y = slot.rotation.y, z = slot.rotation.z },
+        slotType = slot.type or 'car',  -- ⭐ Aktueller Type für UI
         undoCount = #undoStack,
         redoCount = #redoStack,
         slots = slotsData,
@@ -432,8 +433,13 @@ local function ExportConfig()
 
     output = output .. ('    slots = {\n')
     for _, slot in ipairs(trailerConfig.slots) do
-        output = output .. ('        { id = %d, offset = vector3(%.2f, %.2f, %.2f), rotation = vector3(%.2f, %.2f, %.2f) },\n'):format(
-            slot.id,
+        local typeStr = slot.type and (' type = "%s",'):format(slot.type) or ''
+        local sizeStr = slot.size and (' size = vec3(%.2f, %.2f, %.2f),'):format(
+            slot.size.x, slot.size.y, slot.size.z
+        ) or ''
+
+        output = output .. ('        { id = %d,%s%s offset = vector3(%.2f, %.2f, %.2f), rotation = vector3(%.2f, %.2f, %.2f) },\n'):format(
+            slot.id, typeStr, sizeStr,
             slot.offset.x, slot.offset.y, slot.offset.z,
             slot.rotation.x, slot.rotation.y, slot.rotation.z
         )
@@ -499,6 +505,25 @@ end)
 
 RegisterNUICallback('setStep', function(data, cb)
     adjustmentStep = tonumber(data.step) or 0.1
+    cb({})
+end)
+
+-- ⭐ Slot-Type ändern (bike/car/suv/truck)
+RegisterNUICallback('setSlotType', function(data, cb)
+    if not selectedTrailer then cb({}) return end
+    local trailerConfig = GetTrailerConfigByEntity(selectedTrailer)
+    if not trailerConfig then cb({}) return end
+
+    local slot = trailerConfig.slots[selectedSlot]
+    if not slot then cb({}) return end
+
+    SaveUndoState(trailerConfig)
+    slot.type = data.type
+    slot.size = nil  -- Custom size resetten, damit Preset wirkt
+
+    exports.vehicle_loader:ForceRecreateZones(selectedTrailer)
+    SendNUIUpdate()
+    Bridge.Notify('Debug', ('Slot %d Type: %s'):format(slot.id, data.type), 'success')
     cb({})
 end)
 

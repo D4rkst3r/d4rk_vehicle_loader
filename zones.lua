@@ -25,18 +25,36 @@ local function CalculateSlotWorldPos(trailer, slot)
     )
 end
 
+-- ⭐ Slot-Type Presets (für verschiedene Vehicle-Größen)
+local SlotSizes = {
+    bike   = vec3(1.2, 2.5, 1.5),   -- Motorrad/Fahrrad: schmal & kurz
+    car    = vec3(2.2, 4.5, 1.8),   -- Auto: Standard
+    suv    = vec3(2.5, 5.0, 2.0),   -- SUV/Pickup
+    truck  = vec3(2.8, 6.5, 3.0),   -- Truck/LKW
+    default = vec3(2.5, 5.0, 2.0),
+}
+
+-- Get Slot Size (custom size oder preset oder default)
+local function GetSlotSize(slot)
+    -- Priorität: slot.size > slot.type > default
+    if slot.size then
+        return vec3(slot.size.x, slot.size.y, slot.size.z)
+    elseif slot.type and SlotSizes[slot.type] then
+        return SlotSizes[slot.type]
+    end
+    return SlotSizes.default
+end
+
 -- Zone für einen Slot erstellen
 local function CreateSlotZone(trailer, slot, debug)
     local trailerNet = NetworkGetNetworkIdFromEntity(trailer)
 
-    -- ⭐ Color-Coded Zones im Debug Mode
-    -- Grün = frei, Rot = belegt (wird beim Update gesetzt)
     return lib.zones.box({
         coords = CalculateSlotWorldPos(trailer, slot),
-        size = vec3(2.5, 5.0, 2.0),
+        size = GetSlotSize(slot),  -- ⭐ Slot-spezifische Größe
         rotation = GetEntityHeading(trailer) + (slot.rotation.z or 0),
         debug = debug or false,
-        debugColour = {0, 255, 0, 100}, -- Grün als Default
+        debugColour = {0, 255, 0, 100},
 
         onEnter = function(self)
             -- lib.cache nutzen für PlayerPed

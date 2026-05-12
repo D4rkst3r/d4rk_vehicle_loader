@@ -111,6 +111,12 @@ function updateUI(data) {
     if (data.slots !== undefined) {
         updateSlotList(data.slots);
     }
+
+    if (data.slotType !== undefined) {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        const typeBtn = document.querySelector(`.type-btn[data-type="${data.slotType}"]`);
+        if (typeBtn) typeBtn.classList.add('active');
+    }
 }
 
 function updateSlotList(slots) {
@@ -171,6 +177,17 @@ document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.add('active');
         const target = tab.dataset.tab;
         document.querySelector(`[data-content="${target}"]`).classList.add('active');
+    });
+});
+
+// ============================================
+// SLOT TYPE SELECTOR
+// ============================================
+document.querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sendNUIMessage('setSlotType', { type: btn.dataset.type });
     });
 });
 

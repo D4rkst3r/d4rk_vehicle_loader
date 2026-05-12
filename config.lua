@@ -136,64 +136,105 @@ Config = {
             }
         },
 
-        -- Custom Flatbed mit 2 Slots
+        -- ⭐ BEISPIEL: Mixed-Trailer für Bike + Auto nebeneinander
+        -- Slot-Type Presets: 'bike', 'car', 'suv', 'truck' (siehe zones.lua)
+        -- Oder: eigene size = vec3(width, length, height)
         {
             model = 'flatbed_custom',
-            label = 'Custom Flatbed Dual',
+            label = 'Mixed Carrier (Bike + Auto)',
             maxVehicles = 2,
             ramp = {
                 enabled = true,
                 doorIndex = 5,
                 openTime = 500,
             },
-            restrictions = {
-                allowedClasses = nil,
-                blacklistedClasses = nil,
-                maxLength = nil,
-            },
             slots = {
+                -- Slot 1: Bike (links, schmal)
                 {
                     id = 1,
-                    offset = vector3(-1.5, -2.5, 1.0),
+                    type = 'bike',                                -- ⭐ Preset
+                    offset = vector3(-1.5, -3.0, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 },
+                -- Slot 2: Auto (rechts, normal)
                 {
                     id = 2,
-                    offset = vector3(1.5, -5.0, 1.0),
+                    type = 'car',                                 -- ⭐ Preset
+                    offset = vector3(0.8, -3.5, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 }
             }
         },
 
-        -- Beispiel großer Anhänger mit 3 Slots
+        -- ⭐ BEISPIEL: Bike-Carrier mit 3 Bike-Slots nebeneinander
+        -- Model = armytrailer (vom User getestet)
         {
             model = 'armytrailer',
-            label = 'Large Flatbed Triple',
+            label = 'Triple Bike Carrier',
             maxVehicles = 3,
             ramp = {
                 enabled = true,
                 doorIndex = 5,
                 openTime = 500,
             },
+            -- Restriction: NUR Bikes & Fahrräder (Class 8 = Motorräder, 13 = Cycles)
             restrictions = {
-                allowedClasses = nil,
-                blacklistedClasses = nil,
-                maxLength = nil,
+                allowedClasses = {8, 13},
             },
             slots = {
                 {
                     id = 1,
-                    offset = vector3(-2.0, -2.0, 1.0),
+                    type = 'bike',
+                    offset = vector3(-1.5, -3.5, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 },
                 {
                     id = 2,
-                    offset = vector3(0.0, -4.5, 1.0),
+                    type = 'bike',
+                    offset = vector3(0.0, -3.5, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 },
                 {
                     id = 3,
-                    offset = vector3(2.0, -7.0, 1.0),
+                    type = 'bike',
+                    offset = vector3(1.5, -3.5, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                }
+            }
+        },
+
+        -- ⭐ BEISPIEL: Custom Size pro Slot (kein Preset)
+        {
+            model = 'flatbed_xl',
+            label = 'XL Carrier (Custom Sizes)',
+            maxVehicles = 4,
+            ramp = { enabled = true, doorIndex = 5, openTime = 500 },
+            slots = {
+                -- 2 Bikes vorne
+                {
+                    id = 1,
+                    size = vec3(1.0, 2.2, 1.5),     -- ⭐ Custom Size
+                    offset = vector3(-1.0, -1.5, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                },
+                {
+                    id = 2,
+                    size = vec3(1.0, 2.2, 1.5),
+                    offset = vector3(1.0, -1.5, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                },
+                -- 1 Auto hinten links
+                {
+                    id = 3,
+                    type = 'car',
+                    offset = vector3(-1.1, -5.0, 1.0),
+                    rotation = vector3(0.0, 0.0, 0.0),
+                },
+                -- 1 SUV hinten rechts
+                {
+                    id = 4,
+                    type = 'suv',
+                    offset = vector3(1.3, -5.0, 1.0),
                     rotation = vector3(0.0, 0.0, 0.0),
                 }
             }

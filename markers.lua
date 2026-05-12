@@ -61,13 +61,21 @@ CreateThread(function()
                                     local my = trailerCoords.y + offsetY
                                     local mz = trailerCoords.z + slot.offset.z + 1.5
 
+                                    -- ⭐ Marker-Größe basiert auf Slot-Type
+                                    local markerScale = size
+                                    if slot.type == 'bike' then
+                                        markerScale = size * 0.6  -- kleinerer Marker für Bikes
+                                    elseif slot.type == 'truck' then
+                                        markerScale = size * 1.3  -- größerer Marker für Trucks
+                                    end
+
                                     -- Draw Marker
                                     DrawMarker(
                                         markerType,
                                         mx, my, mz,
                                         0.0, 0.0, 0.0,
                                         0.0, 0.0, 0.0,
-                                        1.5 * size, 1.5 * size, 0.8 * size,
+                                        1.5 * markerScale, 1.5 * markerScale, 0.8 * markerScale,
                                         color.r, color.g, color.b, color.a,
                                         true,           -- bobUpAndDown
                                         false,          -- faceCamera
