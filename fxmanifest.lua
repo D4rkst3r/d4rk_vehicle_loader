@@ -2,8 +2,8 @@ fx_version 'cerulean'
 game 'gta5'
 
 author 'Your Name'
-description 'Vehicle Loader System v3.4 - Restrictions, Anti-Theft, Markers, Statebags, Security'
-version '3.4.0'
+description 'Vehicle Loader System v4.0 - Modern NUI Debug, Statebags, Multi-Framework, Production-Ready'
+version '4.0.0'
 
 lua54 'yes'
 
@@ -28,9 +28,14 @@ shared_scripts {
     'restrictions.lua'
 }
 
+ui_page 'nui/index.html'
+
 files {
     'locales/de.json',
-    'locales/en.json'
+    'locales/en.json',
+    'nui/index.html',
+    'nui/style.css',
+    'nui/script.js'
 }
 
 server_scripts {

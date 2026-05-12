@@ -1,0 +1,652 @@
+/* Vehicle Loader Debug UI - Modern Glassmorphism Design */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+}
+
+body {
+    background: transparent;
+    overflow: hidden;
+    color: #fff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#app {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 380px;
+    max-height: 90vh;
+    background: rgba(15, 15, 25, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50%) translateX(100px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.1));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.header-left i {
+    color: #6366f1;
+    font-size: 16px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.version {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.close-btn {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-size: 11px;
+}
+
+.close-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: scale(1.05);
+}
+
+/* ============================================
+   TRAILER INFO
+   ============================================ */
+.trailer-info {
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.trailer-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #e0e7ff;
+    margin-bottom: 4px;
+}
+
+.trailer-name i {
+    color: #a78bfa;
+}
+
+.slot-counter {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.slot-id {
+    color: rgba(255, 255, 255, 0.4);
+    margin-left: 6px;
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.tabs {
+    display: flex;
+    padding: 8px 12px;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 8px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.tab:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.tab.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.tab i {
+    font-size: 11px;
+}
+
+/* ============================================
+   TAB CONTENT
+   ============================================ */
+.tab-content {
+    display: none;
+    padding: 18px;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+/* ============================================
+   MODE SWITCHER
+   ============================================ */
+.mode-switcher {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 8px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.mode-btn:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.mode-btn.active {
+    background: rgba(99, 102, 241, 0.2);
+    color: #a5b4fc;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+}
+
+/* ============================================
+   VALUE INPUTS
+   ============================================ */
+.value-group {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.value-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.value-row:last-child {
+    margin-bottom: 0;
+}
+
+.value-row label {
+    width: 18px;
+    height: 28px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.value-row input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    transition: all 0.15s;
+}
+
+.value-row input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.value-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.value-buttons button {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.1s;
+}
+
+.value-buttons button:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+}
+
+.value-buttons button:active {
+    transform: scale(0.95);
+}
+
+/* ============================================
+   STEP SELECTOR
+   ============================================ */
+.step-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.step-selector label {
+    margin-right: 4px;
+}
+
+.step-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s;
+}
+
+.step-btn:hover {
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #fff;
+}
+
+.step-btn.active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: #6366f1;
+    color: #fff;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.action-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.15s;
+    margin-bottom: 8px;
+    text-align: left;
+    font-family: inherit;
+}
+
+.action-btn:last-child {
+    margin-bottom: 0;
+}
+
+.action-btn:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateX(-2px);
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+.action-btn i {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    color: #a5b4fc;
+}
+
+.action-btn div {
+    flex: 1;
+}
+
+.action-btn strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.action-btn small {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    justify-content: center;
+}
+
+.action-btn.primary i {
+    color: white;
+}
+
+.action-btn.featured {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1));
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.action-btn.featured i {
+    color: #22c55e;
+}
+
+.action-btn.success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.action-btn.success i {
+    color: #22c55e;
+}
+
+.action-btn.danger {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger i {
+    color: #ef4444;
+}
+
+.action-btn.small {
+    padding: 8px 12px;
+    font-size: 12px;
+    flex: 1;
+}
+
+.action-btn.small i {
+    font-size: 13px;
+    width: auto;
+}
+
+.action-btn.small div {
+    display: none;
+}
+
+/* ============================================
+   SLOT LIST
+   ============================================ */
+.slot-list {
+    margin-bottom: 12px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.slot-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.slot-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.slot-item.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15));
+    border-color: rgba(99, 102, 241, 0.5);
+}
+
+.slot-item.occupied {
+    border-left: 3px solid #ef4444;
+}
+
+.slot-item.free {
+    border-left: 3px solid #22c55e;
+}
+
+.slot-icon {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.slot-item.active .slot-icon {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+}
+
+.slot-info {
+    flex: 1;
+}
+
+.slot-info strong {
+    display: block;
+    font-size: 13px;
+}
+
+.slot-info small {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.slot-status {
+    font-size: 10px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.slot-status.free {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.slot-status.occupied {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.slot-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.slot-actions .action-btn.small {
+    margin-bottom: 0;
+    padding: 10px;
+    justify-content: center;
+    gap: 6px;
+}
+
+.slot-actions .action-btn.small i {
+    color: #a5b4fc;
+}
+
+.slot-actions .action-btn.small.danger i {
+    color: #ef4444;
+}
+
+/* ============================================
+   VEHICLE GRID (Test Tab)
+   ============================================ */
+.tab-content h3 {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.vehicle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.vehicle-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+
+.vehicle-card:hover {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.4);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   SHORTCUTS FOOTER
+   ============================================ */
+.shortcuts {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+kbd {
+    display: inline-block;
+    padding: 1px 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    margin-right: 3px;
+    color: #fff;
+}

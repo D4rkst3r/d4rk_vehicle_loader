@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Loader Debug</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app" class="hidden">
+        <!-- Header -->
+        <div class="panel-header">
+            <div class="header-left">
+                <i class="fas fa-wrench"></i>
+                <span>Vehicle Loader Debug</span>
+            </div>
+            <div class="header-right">
+                <span class="version">v5.2</span>
+                <button class="close-btn" id="closeBtn" title="Beenden [N]">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Trailer Info -->
+        <div class="trailer-info">
+            <div class="trailer-name">
+                <i class="fas fa-truck"></i>
+                <span id="trailerLabel">-</span>
+            </div>
+            <div class="slot-counter">
+                Slot <span id="currentSlot">1</span> / <span id="totalSlots">1</span>
+                <span class="slot-id">(ID: <span id="slotId">1</span>)</span>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="values">
+                <i class="fas fa-sliders-h"></i> Werte
+            </button>
+            <button class="tab" data-tab="actions">
+                <i class="fas fa-bolt"></i> Aktionen
+            </button>
+            <button class="tab" data-tab="slots">
+                <i class="fas fa-layer-group"></i> Slots
+            </button>
+            <button class="tab" data-tab="test">
+                <i class="fas fa-car"></i> Test
+            </button>
+        </div>
+
+        <!-- Values Tab -->
+        <div class="tab-content active" data-content="values">
+            <div class="mode-switcher">
+                <button class="mode-btn active" data-mode="position">
+                    <i class="fas fa-arrows-up-down-left-right"></i> Position
+                </button>
+                <button class="mode-btn" data-mode="rotation">
+                    <i class="fas fa-rotate"></i> Rotation
+                </button>
+            </div>
+
+            <div class="value-group">
+                <div class="value-row">
+                    <label>X</label>
+                    <input type="number" id="valueX" step="0.05" value="0.00">
+                    <div class="value-buttons">
+                        <button data-axis="x" data-delta="-1">-</button>
+                        <button data-axis="x" data-delta="1">+</button>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <label>Y</label>
+                    <input type="number" id="valueY" step="0.05" value="0.00">
+                    <div class="value-buttons">
+                        <button data-axis="y" data-delta="-1">-</button>
+                        <button data-axis="y" data-delta="1">+</button>
+                    </div>
+                </div>
+                <div class="value-row">
+                    <label>Z</label>
+                    <input type="number" id="valueZ" step="0.05" value="0.00">
+                    <div class="value-buttons">
+                        <button data-axis="z" data-delta="-1">-</button>
+                        <button data-axis="z" data-delta="1">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-selector">
+                <label>Step:</label>
+                <button class="step-btn" data-step="0.05">0.05</button>
+                <button class="step-btn active" data-step="0.1">0.1</button>
+                <button class="step-btn" data-step="0.5">0.5</button>
+                <button class="step-btn" data-step="1.0">1.0</button>
+            </div>
+
+            <button class="action-btn primary" id="applyBtn">
+                <i class="fas fa-check"></i> Werte anwenden
+            </button>
+        </div>
+
+        <!-- Actions Tab -->
+        <div class="tab-content" data-content="actions">
+            <button class="action-btn featured" id="snapBtn">
+                <i class="fas fa-bullseye"></i>
+                <div>
+                    <strong>Snap to Vehicle</strong>
+                    <small>Position des nächsten Fahrzeugs übernehmen</small>
+                </div>
+            </button>
+
+            <button class="action-btn" id="undoBtn">
+                <i class="fas fa-undo"></i>
+                <div>
+                    <strong>Undo</strong>
+                    <small id="undoCount">0 Schritte</small>
+                </div>
+            </button>
+
+            <button class="action-btn" id="redoBtn">
+                <i class="fas fa-redo"></i>
+                <div>
+                    <strong>Redo</strong>
+                    <small id="redoCount">0 Schritte</small>
+                </div>
+            </button>
+
+            <button class="action-btn" id="rampBtn">
+                <i class="fas fa-door-open"></i>
+                <div>
+                    <strong>Rampe testen</strong>
+                    <small>Öffnen / Schließen</small>
+                </div>
+            </button>
+
+            <button class="action-btn" id="detectRampBtn">
+                <i class="fas fa-search"></i>
+                <div>
+                    <strong>Door-Index ermitteln</strong>
+                    <small>Testet Door 0-6 automatisch</small>
+                </div>
+            </button>
+
+            <button class="action-btn success" id="exportBtn">
+                <i class="fas fa-copy"></i>
+                <div>
+                    <strong>Config exportieren</strong>
+                    <small>Clipboard + Console</small>
+                </div>
+            </button>
+        </div>
+
+        <!-- Slots Tab -->
+        <div class="tab-content" data-content="slots">
+            <div id="slotList" class="slot-list"></div>
+
+            <div class="slot-actions">
+                <button class="action-btn small" id="addSlotBtn">
+                    <i class="fas fa-plus"></i> Neuer Slot
+                </button>
+                <button class="action-btn small" id="duplicateSlotBtn">
+                    <i class="fas fa-copy"></i> Duplizieren
+                </button>
+                <button class="action-btn small" id="mirrorSlotBtn">
+                    <i class="fas fa-right-left"></i> Spiegeln
+                </button>
+                <button class="action-btn small danger" id="removeSlotBtn">
+                    <i class="fas fa-trash"></i> Löschen
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Tab -->
+        <div class="tab-content" data-content="test">
+            <h3>Test-Vehicles spawnen</h3>
+            <div class="vehicle-grid" id="vehicleGrid">
+                <button class="vehicle-card" data-model="adder">🏎️ Adder</button>
+                <button class="vehicle-card" data-model="sultanrs">🚗 Sultan RS</button>
+                <button class="vehicle-card" data-model="bati">🏍️ Bati</button>
+                <button class="vehicle-card" data-model="sandking">🚙 Sandking</button>
+                <button class="vehicle-card" data-model="asea">🚘 Asea</button>
+                <button class="vehicle-card" data-model="phantom">🚛 Phantom</button>
+                <button class="vehicle-card" data-model="baller">🚙 Baller</button>
+            </div>
+
+            <button class="action-btn danger" id="deleteVehicleBtn">
+                <i class="fas fa-trash"></i> Test-Vehicle löschen
+            </button>
+        </div>
+
+        <!-- Shortcuts Footer -->
+        <div class="shortcuts">
+            <span><kbd>F</kbd> Snap</span>
+            <span><kbd>T</kbd> Test</span>
+            <span><kbd>G</kbd> Slot+</span>
+            <span><kbd>Z</kbd> Undo</span>
+            <span><kbd>N</kbd> Exit</span>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
